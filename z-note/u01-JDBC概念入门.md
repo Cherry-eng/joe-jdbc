@@ -40,13 +40,7 @@
 7. 测试连接是否关闭：
     - `boolean isClosed()`：关闭返回true。
 
-
-
-
-
-
-连接Oracle数据库测试
-
+**源码：** test/ConnectTest.java
 
 
 3. DataSourc封装
