@@ -46,18 +46,7 @@
 
 
 连接Oracle数据库测试
-@Test
-void connectTestWithOracle() {
-    String url = "jdbc:oracle:thin:@127.0.0.1:1521:数据库名";// 连接串
-    String user = "scott",password = "tiger";// 用户名密码
-    try {
-        Class.forName("oracle.jdbc.driver.OracleDriver");// 通过反射的方式驱动数据库
-    	Connection connection = DriverManager.getConnection(url, user,password);//获取连接
-    	System.out.println(connection.isClosed()); // 测试连接是否关闭
-    } catch (ClassNotFoundException | SQLException e) {
-        e.printStackTrace();
-    }
-}
+
 
 
 3. DataSourc封装
