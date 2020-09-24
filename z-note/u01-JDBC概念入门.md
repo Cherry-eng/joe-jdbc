@@ -39,78 +39,26 @@
     - `static Connection getConnection(String url)`：需要将账号密码附在URL参数中。
 7. 测试连接是否关闭：
     - `boolean isClosed()`：关闭返回true。
+8. 无论测试是否成功，都需要将连接关闭以节省内存资源：
+    - `void close()`：关闭资源需要抛出SQLException异常。
 
 **源码：** test/ConnectTest.java
 
+# 3. JDBC封装
 
-3. DataSourc封装
+**概念：** 为了有效地重复利用上面的驱动连接代码，你可以将上面测试代码，封装成一个 `DataSource` 类，这个类负责驱动数据库、制造连接和关闭连接。
+- 引入静态块，因为驱动的代码你肯定希望全程只运行一次就够了：
+    - 通过反射驱动 `Driver` 类。
+    - 通过 `DriverManager` 类获取一个有效的连接。
+- 封装一个获取连接的方法：`synchronized Connection getConnection()`
+    - 获取连接的方法需要枷锁，否则如果赵四和刘能获取同一个连接，然后赵四关闭这个连接的时候刘能还没有使用完就会出现问题。
+- 封装一个关闭连接的方法：`void closeConnection(Connection connection)`
 
-为了有效地重复利用上面的驱动连接代码，你可以将上面测试代码，封装成一个DataSource类，这个类负责驱动数据库、制造连接和关闭连接。
+**源码：** datasource/DataSource.java
 
-引入静态块（因为驱动的代码你肯定希望全程只运行一次就够了），将驱动的过程放在静态块中。
-将驱动串，连接串等配置信息提取成私有静态属性。
-封装一个获取连接（线程保护）和关闭连接的方法。
+**源码：** datasource/DataSourceTest.java
 
-类图
-
-源代码
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-
-/**
- * @author Joe
- */
-public class DataSource {
-    
-	private static String driver = "com.mysql.cj.jdbc.Driver";
-	private static String user = "joe";
-	private static String password = "joe";
-	private static String url = "jdbc:mysql://127.0.0.1:3306/j256?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=UTC";
-	private static Connection connection;
-
-	static {
-		try {
-			Class.forName(driver);
-			connection = DriverManager.getConnection(url, user, password);
-		} catch (ClassNotFoundException | SQLException e) {
-			e.printStackTrace();
-		}
-	}
-
-	public synchronized Connection getConnection() {
-		return connection;
-	}
-
-	public void closeConnection(Connection connection) {
-		try {
-			connection.close();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-	}
-}
-
-
-测试
-@Test
-public void connectTestWithDataSource() throws SQLException {
-    
-    // 赵四获取连接
-    Connection connection1 = new DataSource().getConnection();
-    
-    // 刘能获取连接
-    Connection connection2 = new DataSource().getConnection();
-    
-    System.out.println(connection1.isClosed());
-    System.out.println(connection2.isClosed());
-    
-    // 赵四和刘能获取同一个连接，如果赵四关闭这个连接的时候刘能还没有使用完...
-    System.out.println(connection1 == connection2);
-}
-
-
-4. DataSourc优化：连接池
+# 4. DataSourc优化：连接池
 
 每次访问数据库，都需要获取一个连接，很浪费资源，我们可以在直接在静态块中准备10个或者更多的连接，形成一个连接池，当调用者想要获取连接的时候，直接从池中获取，当调用者想要关闭连接的时候，将连接回收到池中，重新利用，这就是连接池的概念。
 
