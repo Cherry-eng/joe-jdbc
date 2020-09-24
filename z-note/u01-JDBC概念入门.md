@@ -47,11 +47,11 @@
 # 3. DataSource封装
 
 **概念：** 为了有效地重复利用上面的驱动连接代码，你可以将上面测试代码，封装成一个 `DataSource` 类，这个类负责驱动数据库、制造连接和关闭连接。
-- 引入静态块，因为驱动的代码你肯定希望全程只运行一次就够了：
+- 引入静态块：
     - 通过反射驱动 `Driver` 类。
     - 通过 `DriverManager` 类获取一个有效的连接。
 - 封装一个获取连接的方法：`synchronized Connection getConnection()`
-    - 获取连接的方法需要枷锁，否则如果赵四和刘能获取同一个连接，然后赵四关闭这个连接的时候刘能还没有使用完就会出现问题。
+    - 获取连接的方法需要加锁，否则如果赵四和刘能获取同一个连接，然后赵四关闭这个连接的时候刘能还没有使用完就会出现问题。
 - 封装一个关闭连接的方法：`void closeConnection(Connection connection)`
 
 **源码：** datasource/DataSource.java
