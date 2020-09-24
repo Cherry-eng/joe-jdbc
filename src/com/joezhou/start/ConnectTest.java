@@ -1,4 +1,4 @@
-package com.joezhou.test;
+package com.joezhou.start;
 
 import org.junit.Test;
 

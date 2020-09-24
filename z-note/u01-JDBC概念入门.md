@@ -42,38 +42,35 @@
 8. 无论测试是否成功，都需要将连接关闭以节省内存资源：
     - `void close()`：关闭资源需要抛出SQLException异常。
 
-**源码：** test/ConnectTest.java
+**源码：** start/ConnectTest.java
 
-# 3. DataSource封装
+# 3. 代码封装
 
-**概念：** 为了有效地重复利用上面的驱动连接代码，你可以将上面测试代码，封装成一个 `DataSource` 类，这个类负责驱动数据库、制造连接和关闭连接。
-- 引入静态块：
+**概念：** 为了有效地重复利用驱动和连接的代码，建议将这部分代码封装到一个 `DataSource` 类中，这个类专门负责驱动数据库、制造连接和关闭连接。
+
+**流程：**
+1. 引入静态块：
     - 通过反射驱动 `Driver` 类。
     - 通过 `DriverManager` 类获取一个有效的连接。
-- 封装一个获取连接的方法：`synchronized Connection getConnection()`
+2. 封装一个获取连接的方法：`synchronized Connection getConnection()`
     - 获取连接的方法需要加锁，否则如果赵四和刘能获取同一个连接，然后赵四关闭这个连接的时候刘能还没有使用完就会出现问题。
-- 封装一个关闭连接的方法：`void closeConnection(Connection connection)`
+3. 封装一个关闭连接的方法：`void closeConnection(Connection connection)`
 
 **源码：** datasource/DataSource.java
 
 **源码：** datasource/DataSourceTest.java
 
-# 4. DataSource优化：连接池
+# 4. 优化-连接池
 
 每次访问数据库，都需要获取一个连接，很浪费资源，我们可以在直接在静态块中准备10个或者更多的连接，形成一个连接池，当调用者想要获取连接的时候，直接从池中获取，当调用者想要关闭连接的时候，将连接回收到池中，重新利用，这就是连接池的概念。
 
-类图
+**源码：** pool/DataSource.java
 
+**源码：** pool/DataSourceTest.java
 
-源代码
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
- * @author Joe
+ * @author JoeZhou
  */
 public class DataSource {
 
@@ -151,7 +148,7 @@ public void connectionPoolTest() throws SQLException {
 }
 
 
-5. DataSourc优化：属性文件
+# 5. 优化-属性文件
 
        属性文件可以帮助我们代码解耦，将一些配置信息单独提取出来，放入到属性文件中，然后使用程序去读取属性文件的内容，这样的操作可以使得配置与代码分离。
 
@@ -180,7 +177,7 @@ private static void getMsgFromPropertiesFile() {
 }
 
 
-6. DataSourc优化：静态工厂模式
+# 6. 优化-工厂模式
 
 在测试类中，我们需要自己new一个DataSource然后再使用它，即是生产者，又是使用者，所以我们可以使用静态工厂模式，将生产者和使用者分离。
 
@@ -203,7 +200,3 @@ public void connectTestWithStaticFactoryModel() throws SQLException {
 	Connection connection = dataSource.getConnection();
 	System.out.println(connection.isClosed());
 }
-
-
---------------------------------------------------------------------------------
- By Mr.Joe
